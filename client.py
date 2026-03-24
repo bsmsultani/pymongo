@@ -16,7 +16,23 @@ class MongoClient:
         """
         Send command and wait for response.
         """
-        command = Serializer.encode(args)
+        command = Serializer.encode(*args)
+        self._socket.sendall(command)
+
+
+        while True:
+            result = self._parser.parse_one()
+            if result is not None:
+                return result
+
+            chunk = self._socket.recv(4069)
+            self._parser.feed(chunk)
+
+
+if __name__:
+    client = MongoClient()
+    client.send_command("$ls")
+
 
 
 
