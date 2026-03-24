@@ -1,3 +1,4 @@
+from multiprocessing import Value
 from typing import Optional, Any, List, Dict
 import struct
 
@@ -5,19 +6,17 @@ import struct
 class Parser:
     def __init__(self):
 
-        self.buffer : bytearray = bytearray()
+        self._buffer : bytearray = bytearray()
+        self._pos : int = 0
 
 
+    def read_byte(self) -> int:
+        if self._pos >= len(self._buffer):
+            return
 
-    def parse_one(self):
-        pass
-
-
-    def feed(self, chunk : bytearray):
-
-        pass
-
-
+        byte = self._buffer[self._pos]
+        self._pos += 1
+        return byte
     
 
 
@@ -26,14 +25,37 @@ class Serializer:
         pass
 
 
+
+    @staticmethod
+    def _encode_string(value: str) -> bytes:
+        """
+        Args:
+            value : a simple string such as "apple"
+        
+        Returns:
+            [4 byte length][data] data is encoded with utf-8
+        """
+        return struct.pack("<i", len(value) + 4) + value.encode("utf-8")
+
+    @staticmethod
+    def _encode_int(value : int) -> bytes:
+        """
+        Args:
+            value: an integer such as 42
+        Returns:
+            []
+        """
+        value = str(value)
+        return struct.pack("<i", len(value) + 4) + value.encode("utf-8")
+
+
     def encode(doc: Dict[str, Any]) -> bytes:
         elements = b''
-        for key, val in doc:
+        for key, val in doc.items():
             if isinstance(val, str):
-                pass
-
+                elements += Serializer._encode_string(val)
             elif isinstance(val, int):
-                pass
+                elements += Serializer._encode_int(val)
 
             elif isinstance(val, bool):
                 pass
@@ -50,3 +72,9 @@ class Serializer:
 
         total = elements + b"\x00"
         return struct.pack("<i", len(total) + 4) + total  # include 4 bytes of l
+
+
+
+if __name__ == "__main__":
+    result = Serializer.encode({'name' : 'bismillah', 'age': 21})
+    print(result)
