@@ -12,7 +12,8 @@ class MongoClient:
 
         self._parser = None
 
-    def send_command(self, args*) -> any:
+    def send_command(self, *args) -> any:
+
         """
         Send command and wait for response.
         """
